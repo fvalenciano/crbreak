@@ -1,0 +1,14 @@
+# Galactic plane in 18 |l| windows of 5 deg (checkpoint: results/paper1/windows18).
+#   python -m crbreak.run configs/paper1/windows18.yaml
+extends: ../baseline.yaml
+
+sky:
+  glon_edges: [0, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60, 65, 70, 75, 80, 85, 90]
+
+mc:                             # the paper variants used 1k / 100k toys
+  n_toys_window: 1000
+  n_toys_global_free: 100000
+  n_toys_global_fixed: 100000
+
+output:
+  tag: windows18

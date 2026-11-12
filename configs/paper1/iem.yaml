@@ -1,0 +1,15 @@
+# Fermi-LAT interstellar emission model gll_iem_v07 instead of the PASS8 data
+# (checkpoint: results/paper1/iem).
+#   python -m crbreak.run configs/paper1/iem.yaml
+extends: ../baseline.yaml
+
+data:
+  kinds: [IEM]
+
+mc:                             # the paper variants used 1k / 100k toys
+  n_toys_window: 1000
+  n_toys_global_free: 100000
+  n_toys_global_fixed: 100000
+
+output:
+  tag: ""

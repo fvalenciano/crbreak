@@ -1,0 +1,14 @@
+# Latitude cut |b| < 2 deg (checkpoint: results/paper1/b0-2).
+#   python -m crbreak.run configs/paper1/b0-2.yaml
+extends: ../baseline.yaml
+
+sky:
+  glat_edges: [0, 2]
+
+mc:                             # the paper variants used 1k / 100k toys
+  n_toys_window: 1000
+  n_toys_global_free: 100000
+  n_toys_global_fixed: 100000
+
+output:
+  tag: b0-2

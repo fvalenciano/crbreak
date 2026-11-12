@@ -1,0 +1,184 @@
+# Baseline analysis of the paper: PASS8, 9 |l| windows in |l| < 85 deg, |b| < 4 deg,
+# box+Gaussian prior, independent nuisances, B-spline basis, 10k / 2M Monte Carlo toys
+# (checkpoint: results/paper1/baseline).
+#
+# Every analysis option lives in this file.  Other configs start with
+# `extends: <path to this file>` and list only what they change (see configs/paper1/).
+# This file stays here: config_from_checkpoint reads it for checkpoints without a config.
+# Run:  python -m crbreak.run configs/baseline.yaml
+#       sbatch scripts/slurm/run_analysis.sbatch configs/baseline.yaml
+
+paths:                          # relative paths are relative to the repo root
+  data_dir: data/fermi          # Fermi-LAT data and templates (scripts/download_data.sh)
+  dragon_dir: data/dragon       # DRAGON pi0 maps (scripts/download_data.sh)
+  repo_data_dir: data/bubbles   # Fermi-bubbles template, shipped with the repo
+
+files:
+  # under paths.data_dir
+  pass8_exposure: pass8/fermi_exposure_healpix_nside256.fits
+  pass8_events: pass8/events_binned_healpix.fits
+  iem_exposure: iem/fermi_exposure-z105_healpix_NSIDE256.fits
+  iem_events: iem/fermi_healpix_NSIDE256.fits
+  iem_model: iem/gll_iem_v07.fits
+  isotropic: iso_P8R3_CLEAN_V3_v1.txt
+  point_sources: point_sources/FV_PS_4FGLv34_NSIDE1024_21bin_1.0to1000.0_KingPSF.fits
+  point_source_variants:        # compared in the PS-comparison plot
+    best: point_sources/FV_PS_4FGLv34_NSIDE1024_21bin_1.0to1000.0_KingPSF.fits
+    PL: point_sources/FV_PS_4FGLv34_NSIDE1024_21bin_1.0to1000.0_KingPSF_PL.fits
+    LP: point_sources/FV_PS_4FGLv34_NSIDE1024_21bin_1.0to1000.0_KingPSF_LP.fits
+    PLSEC: point_sources/FV_PS_4FGLv34_NSIDE1024_21bin_1.0to1000.0_KingPSF_PLSEC.fits
+  unresolved_sources: Fermi_Unresolved_Sources_Flux_Map_Mean_mSp4.fits
+  hermes:                       # IC and bremsstrahlung templates (order = sum order)
+    IC_cmb: hermes/EleCutOff50TeV-IC_cmb_nside64.fits
+    IC_isrf: hermes/EleCutOff50TeV-IC_isrf_nside64.fits
+    Brems_H2: hermes/EleCutOff50TeV-BremsH2_nside64.fits
+    Brems_HI: hermes/EleCutOff50TeV-BremsHI_nside64.fits
+  # under paths.repo_data_dir
+  bubble_mask: template_bub.npy
+  bubble_spectrum: fermi_bubbles_table2.txt   # Ackermann+14 table 2
+  # under paths.dragon_dir
+  dragon_models:
+    No312Break: {H2: TestNo312Break_Base_H2_nside64.fits, HI: TestNo312Break_Base_HI_nside64.fits}
+    w312Break: {H2: Testw312Break_Base_H2_nside64.fits, HI: Testw312Breakw_Base_HI_nside64.fits}
+    VariableMin: {H2: VariableMin-H2_nside64.fits, HI: VariableMin-HI_nside64.fits}
+
+sky:
+  glon_edges: [0, 5, 15, 25, 35, 45, 55, 65, 75, 85]  # |l| window edges [deg]
+  glon_sign: both               # both: |l| (l and -l); pos: only 0<l<180; neg: only 180<l<360 (l<0)
+  glat_edges: [0, 4]            # |b| band edges [deg]; >1 band -> <day>/b<lo>-<hi>/<name> each + <day>/combined/<name>
+  control_glat_lims: [4, 90]    # high-|b| control region (control* modes only)
+
+data:
+  kinds: [PASS8]                # PASS8, IEM, DRAGON (mock), or several (overlay plots)
+  pass8_raw_comparison: true    # also fit PASS8 without background subtraction
+  sed_scaling: 2.6              # y = E^sed_scaling dN/dE (templates are interpolated in this space)
+  min_counts_per_bin: 10
+  nside_iem: 256                # HEALPix reprojection of the IEM cube
+  nside_ups: 128                # HEALPix reprojection of the unresolved-source map
+  aeff_error:                   # fractional Aeff systematic, also the nuisance amplitude
+    base: 0.05                  # between low_below_mev and high_above_mev
+    low_below_mev: 100.0        # base + low_slope * (low_pivot - log10 E/MeV)
+    low_slope: 0.2
+    low_pivot_log10_mev: 2.0
+    high_above_mev: 100000.0    # base + high_slope * (log10 E/MeV - high_pivot)
+    high_slope: 0.1
+    high_pivot_log10_mev: 4.5
+  pass8:
+    bg_components: [ISO, PS, UPS, BUB, IC_cmb, IC_isrf, Brems_H2, Brems_HI]
+    e_min_gev: 3.0
+    e_max_gev: null
+    drop_last_bins: 1
+    sigma_reference: raw        # raw | subtracted intensity multiplies the fractional errors
+  iem:
+    bg_components: [ISO, BUB, IC_cmb, IC_isrf, Brems_H2, Brems_HI]
+    e_min_gev: 2.0
+    e_max_gev: 300.0
+    drop_last_bins: 0
+    sigma_reference: raw
+  dragon:                       # DRAGON pi0 (H2 + HI) mock spectrum: its own energies and normalisation
+    bg_components: []           # the maps are the gas emission itself: nothing to subtract
+    e_min_gev: 3.0
+    e_max_gev: null
+    drop_last_bins: 0
+    sigma_reference: raw        # (no background: raw = subtracted)
+  dragon_model: w312Break       # kind DRAGON: key of files.dragon_models
+  dragon_sigma_frac: 0.05       # kind DRAGON: sigma = 0.05 F, no Poisson or Aeff term 
+
+model:
+  e0: 1.0                       # [GeV] reference energy of K
+  sbpl_s_fixed: 0.04            # SBPL break smoothness s; null: s is free (sbpl.p0.s, sbpl.bounds.s)
+  sbpl_ebreak_fixed: null       # [GeV] null: Ebreak free; a value fixes Ebreak in every SBPL fit (needs scan.enabled: false)
+  pl:
+    p0: {gamma: 2.5}            # start values; K is seeded from the data with this slope
+    bounds: {K: [0, .inf], gamma: [0, 5]}
+  sbpl:
+    p0: {gamma1: 2.4, dgamma: 0.14, Ebreak: 26.4, s: 0.04}   # s, Ebreak: only read when free
+    bounds: {K: [0, .inf], gamma1: [0, 5], dgamma: [0, 3], Ebreak: [15, 100], s: [0.01, 0.5]}  # signed dgamma: [-3, 3]
+
+cr_reference:                   # measured CR break : fixed-shape fits + plot markers
+  ebreak_gev: 26.52
+  dgamma: 0.14
+  ebreak_band_gev: [28.6, 34.2]   # plotted band = ebreak_band_factor * ebreak_band_gev
+  ebreak_band_factor: 0.85
+  dgamma_band: [0.11, 0.17]
+
+nuisance:
+  classical_only: false         # true: skip every profiled (nuisance) fit
+  mode: indep                   # indep | common | control | control_common | control_wsbpl | control_common_wsbpl
+  prior: box_gauss              # box_gauss | gaussian
+  prior_sigma: 1.0
+  prior_width: 1.0
+  prior_tail: 0.1
+  basis: bspline                # bspline | piecewise_linear
+  n_nodes: 6
+  bspline_degree: 3
+  enforce_s_bounds: true        # keep s(E; w) inside (-1, 1) on the data bins
+  control_enforce_s_bounds: false   # same, for the high-|b| control windows (control* modes)
+  max_dw: 2.0                   # max |w[i+1] - w[i]|  (piecewise_linear used 1.5)
+  safety_net: true              # keep the classical best fit if its profiled chi2 is lower
+
+mc:
+  do_windows: true
+  do_global: true
+  n_toys_window: 10000
+  n_toys_global_free: 2000000
+  n_toys_global_fixed: 2000000
+  batch_size: 50
+  store_deltachi2: true
+  seed: 0
+  sample_theta: true            # draw the null parameters from their covariance per toy
+  warm_start: true              # start the alternative refit at its observed best fit
+
+solver:
+  chi2_maxfev: 20000            # classical per-window fit (curve_fit)
+  global_max_nfev: 40000        # classical global fit (least_squares)
+  global_x_scale: jac
+  profiled_max_iter: 5000       # outer L-BFGS-B of every profiled fit
+  hessian_eps: 1.0e-4           # finite-difference step of the profiled Hessian (pcov)
+  hessian_ridge: 1.0e-8
+
+scan:                           # 2-D (Ebreak, dgamma) chi2 scan of the global fit
+  enabled: true
+  n_ebreak: 20
+  n_dgamma: 20
+  ebreak_range: [0.0, 80.0]     # [GeV]
+  dgamma_range: [0.0, 0.5]      # signed-dgamma modes (control_*wsbpl): [-0.4, 0.5]
+
+profile_errors:                 # 1-D Delta chi2 profiles (per window; global: Ebreak, dgamma)
+  params: [Ebreak, dgamma, gamma1, gamma2]
+  delta_chi2: 1.0
+  ebreak_grid: [1.0, 100.0, 80]   # [lo, hi, n_points]
+  dgamma_grid: [0.0, 0.4, 80]     # signed-dgamma modes: [-0.6, 0.6, 40]
+  gamma_radius: 0.5               # gamma1/gamma2 grid: best fit +- radius, per window
+  gamma_n_points: 81
+
+break_polish:                   # local (Ebreak, dgamma) grid around the global best fit
+  radius_ebreak: 15.0
+  radius_dgamma: 0.15
+  n_ebreak: 17
+  n_dgamma: 17
+  min_improvement: 1.0e-3
+
+plots:
+  scan_smooth_sigma: 1.0        # Gaussian smoothing of the contour plot
+  stamp_prior_nuisance: false   # write "Prior / Nuisances" on the figures
+  contour_levels: [2.30, 6.18, 11.83]   # Delta chi2 of the 68 / 95 / 99.7% joint (df=2) contours
+  sed_band: {n_samples: 600, q: [25, 75], seed: 42}   # SBPL band on the SED, from the fit covariance
+  nuisance_band:                # posterior band of s(E; w) in the nuisance plots
+    n_samples: 2000
+    n_samples_sed_plus_nuisances: 1200
+    seed: 0
+    hessian_eps: 1.0e-4
+    hessian_ridge: 1.0e-8
+  background_components: true
+  dragon_model: No312Break      # DRAGON model overlaid on the background plot (null: none)
+  dragon_norm_n_bins: 3         # ... normalised to the data over its lowest-energy bins
+  ps_comparison: true
+
+run:
+  n_workers: null               # null: $SLURM_CPUS_PER_TASK, else os.cpu_count()
+  save_checkpoint: true
+
+output:
+  parent: results/runs          # run dir: <parent>/<ddMonyy>/b<lo>-<hi>/<kinds>[_glon<sign>][_<tag>][_v<i>]
+  tag: ""                       # variant only (e.g. nosub); date, |b| band and kind are in the path

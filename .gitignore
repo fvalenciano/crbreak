@@ -1,0 +1,19 @@
+__pycache__/
+*.py[cod]
+.venv
+*.egg-info/
+dist/
+build/
+.pytest_cache/
+.ipynb_checkpoints/
+.DS_Store
+
+# Downloaded data (scripts/download_data.sh)
+data/fermi/
+data/dragon/
+
+# Run outputs; results/paper1 (paper checkpoints and figures) is tracked
+results/runs/
+results/tutorial/
+outputs/
+errors/

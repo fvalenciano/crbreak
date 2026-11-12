@@ -1,0 +1,15 @@
+# Gaussian prior on the nuisance coefficients instead of box+Gaussian
+# (checkpoint: results/paper1/gaussian_prior).
+#   python -m crbreak.run configs/paper1/gaussian_prior.yaml
+extends: ../baseline.yaml
+
+nuisance:
+  prior: gaussian
+
+mc:                             # the paper variants used 1k / 100k toys
+  n_toys_window: 1000
+  n_toys_global_free: 100000
+  n_toys_global_fixed: 100000
+
+output:
+  tag: gaussian_prior

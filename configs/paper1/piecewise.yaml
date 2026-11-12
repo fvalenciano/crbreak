@@ -1,0 +1,17 @@
+# Piecewise-linear nuisance basis instead of B-splines (checkpoint: results/paper1/piecewise).
+# The paper run predates the YAML configs: basis and max_dw are the values recorded for it,
+# any other nuisance setting is the baseline one.
+#   python -m crbreak.run configs/paper1/piecewise.yaml
+extends: ../baseline.yaml
+
+nuisance:
+  basis: piecewise_linear
+  max_dw: 1.5
+
+mc:                             # the paper variants used 1k / 100k toys
+  n_toys_window: 1000
+  n_toys_global_free: 100000
+  n_toys_global_fixed: 100000
+
+output:
+  tag: piecewise

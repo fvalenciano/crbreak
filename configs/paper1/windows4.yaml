@@ -1,0 +1,14 @@
+# Galactic plane in 4 |l| windows (checkpoint: results/paper1/windows4).
+#   python -m crbreak.run configs/paper1/windows4.yaml
+extends: ../baseline.yaml
+
+sky:
+  glon_edges: [0, 20, 40, 60, 90]
+
+mc:                             # the paper variants used 1k / 100k toys
+  n_toys_window: 1000
+  n_toys_global_free: 100000
+  n_toys_global_fixed: 100000
+
+output:
+  tag: windows4

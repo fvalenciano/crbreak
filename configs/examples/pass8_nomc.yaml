@@ -1,0 +1,14 @@
+# Quick run (about 10 min on 20 cores): baseline fits and figures without the Monte Carlo
+# toys and without the PASS8 unsubtracted comparison fit.
+#   python -m crbreak.run configs/examples/pass8_nomc.yaml
+extends: ../baseline.yaml
+
+data:
+  pass8_raw_comparison: false
+
+mc:
+  do_windows: false
+  do_global: false
+
+output:
+  tag: nomc

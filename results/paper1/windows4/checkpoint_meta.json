@@ -1,0 +1,26 @@
+{
+  "basis_kind_prof": "bspline",
+  "control_glat_lims": [
+    4.0,
+    90.0
+  ],
+  "created_utc": "2026-06-15T12:47:29Z",
+  "glat_lims": [
+    0.0,
+    4.0
+  ],
+  "glon_edges": [
+    0.0,
+    20.0,
+    40.0,
+    60.0,
+    90.0
+  ],
+  "kinds": [
+    "PASS8"
+  ],
+  "nuisance_mode": "indep",
+  "prior_kind": "box_gauss",
+  "scan_smooth_sigma": 1.0,
+  "stamp_nuisance_mode": "indep"
+}

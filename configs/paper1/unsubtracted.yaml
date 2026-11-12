@@ -1,0 +1,21 @@
+# PASS8 without background subtraction, "LAT" panel of the paper
+# (checkpoint: results/paper1/unsubtracted).
+#   python -m crbreak.run configs/paper1/unsubtracted.yaml
+extends: ../baseline.yaml
+
+data:
+  pass8_raw_comparison: false     # the main fit is already the raw one
+  pass8:
+    bg_components: []
+
+mc:                             # the paper variants used 1k / 100k toys
+  n_toys_window: 1000
+  n_toys_global_free: 100000
+  n_toys_global_fixed: 100000
+
+plots:
+  background_components: false    # no components to plot
+  ps_comparison: false
+
+output:
+  tag: unsubtracted

@@ -1,0 +1,28 @@
+[project]
+name = "crbreak"
+version = "0.1.0"
+description = "Search for a spectral break in the Fermi-LAT diffuse emission of the Galactic plane"
+authors = [
+    {name = "fvalenciano", email = "valencianofer01@gmail.com"}
+]
+requires-python = ">=3.10,<3.11" # Lock it to 3.10 specifically
+dependencies = [
+    "matplotlib>=3.7.0",
+    "numpy>=1.23.0",
+    "scipy>=1.10.0",
+    "pyyaml>=6.0",
+    "astropy (<6.1)",
+    "healpy (>=1.19.0,<2.0.0)",
+    "reproject (<0.15)",
+    "imageio-ffmpeg (>=0.6.0,<0.7.0)",
+    "jax (==0.4.26)",
+    "jaxlib (==0.4.26)"
+]
+
+[tool.poetry]
+packages = [{include = "crbreak", from = "src"}]
+[dependency-groups]
+dev = [
+    "ipykernel (>=7.3.0,<8.0.0)",
+    "pytest (>=8.0)"
+]
